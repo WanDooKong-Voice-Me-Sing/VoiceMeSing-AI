@@ -1,0 +1,12 @@
+docker run -it --gpus all --shm-size=24g -m 24g --memory-swap=32g -v C:\Users\PC\Desktop\VoiceMeSing-AI\app:/app rvc
+docker run -it --gpus all --shm-size=16g -m 16g --memory-swap=32g --cpus=6 -v C:\Users\PC\Desktop\VoiceMeSing-AI\app:/app rvc
+pip install pip==24.0
+ uvicorn.run("agent:app", host="127.0.0.1", port=5000, reload=False, log_level="info", workers=0)
+df -h /dev/shm
+공유 메모리 확인
+
+
+
+
+pip uninstall torch torchvision torchaudio
+pip install torch==2.4.0 torchvision==0.19.0 torchaudio==2.4.0 --index-url https://download.pytorch.org/whl/cu118

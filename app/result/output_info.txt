@@ -1,0 +1,4 @@
+Success.
+Index not used.
+Time:
+npy: 0.07s, f0: 1.52s, infer: 12.49s.

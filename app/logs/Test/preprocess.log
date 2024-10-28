@@ -1,0 +1,16 @@
+로그 파일 초기화 완료
+start preprocess
+Fail. Traceback (most recent call last):
+  File "/app/infer/modules/train/preprocess.py", line 115, in pipeline_mp_inp_dir
+    for idx, name in enumerate(sorted(list(os.listdir(inp_root))))
+FileNotFoundError: [Errno 2] No such file or directory: 'app/source/vocal'
+
+end preprocess
+app/source/vocal 40000 11 /app/logs/Test False 3.7
+start preprocess
+Fail. Traceback (most recent call last):
+  File "/app/infer/modules/train/preprocess.py", line 115, in pipeline_mp_inp_dir
+    for idx, name in enumerate(sorted(list(os.listdir(inp_root))))
+FileNotFoundError: [Errno 2] No such file or directory: 'app/source/vocal'
+
+end preprocess

@@ -1,0 +1,7 @@
+로그 파일 초기화 완료
+infer/modules/train/extract/extract_f0_rmvpe.py 2 0 0 /app/logs/myTest True
+infer/modules/train/extract/extract_f0_rmvpe.py 2 1 0 /app/logs/myTest True
+infer/modules/train/extract_feature_print.py cuda:0 1 0 0 /app/logs/myTest v2 True
+exp_dir: /app/logs/myTest
+load model(s) from assets/hubert/hubert_base.pt
+move model to cuda

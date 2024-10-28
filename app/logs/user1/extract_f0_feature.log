@@ -1,0 +1,17 @@
+로그 파일 초기화 완료
+infer/modules/train/extract/extract_f0_rmvpe.py 2 0 0 /app/logs/user1 True
+infer/modules/train/extract/extract_f0_rmvpe.py 2 1 0 /app/logs/user1 True
+todo-f0-22
+todo-f0-23
+f0ing,now-0,all-22,-/app/logs/user1/1_16k_wavs/0_10.wav
+f0ing,now-0,all-23,-/app/logs/user1/1_16k_wavs/0_0.wav
+f0ing,now-4,all-22,-/app/logs/user1/1_16k_wavs/0_2.wav
+f0ing,now-4,all-23,-/app/logs/user1/1_16k_wavs/0_19.wav
+f0ing,now-8,all-23,-/app/logs/user1/1_16k_wavs/0_29.wav
+f0ing,now-8,all-22,-/app/logs/user1/1_16k_wavs/0_30.wav
+f0ing,now-12,all-22,-/app/logs/user1/1_16k_wavs/0_39.wav
+f0ing,now-12,all-23,-/app/logs/user1/1_16k_wavs/0_38.wav
+f0ing,now-16,all-22,-/app/logs/user1/1_16k_wavs/0_48.wav
+f0ing,now-16,all-23,-/app/logs/user1/1_16k_wavs/0_47.wav
+f0ing,now-20,all-23,-/app/logs/user1/1_16k_wavs/0_54.wav
+f0ing,now-20,all-22,-/app/logs/user1/1_16k_wavs/0_55.wav

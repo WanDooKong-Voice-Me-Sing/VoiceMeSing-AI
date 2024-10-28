@@ -1,0 +1,8 @@
+로그 파일 초기화 완료
+start preprocess
+/app/source/vocal 40000 11 /app/logs/Test_3 False 3.7
+start preprocess
+/app/source/vocal/vocal_Buzz.mp3_10.wav	-> Success
+/app/source/vocal/vocal_Buzz.mp3_10.wav	-> Success
+end preprocess
+end preprocess

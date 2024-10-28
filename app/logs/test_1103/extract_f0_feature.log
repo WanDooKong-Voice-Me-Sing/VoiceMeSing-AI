@@ -1,0 +1,22 @@
+로그 파일 초기화 완료
+infer/modules/train/extract/extract_f0_rmvpe.py 2 0 0 /app/logs/test_1103 True
+todo-f0-71
+f0ing,now-0,all-71,-/app/logs/test_1103/1_16k_wavs/0_0.wav
+infer/modules/train/extract/extract_f0_rmvpe.py 2 1 0 /app/logs/test_1103 True
+todo-f0-70
+f0ing,now-0,all-70,-/app/logs/test_1103/1_16k_wavs/0_10.wav
+f0ing,now-14,all-71,-/app/logs/test_1103/1_16k_wavs/0_41.wav
+f0ing,now-14,all-70,-/app/logs/test_1103/1_16k_wavs/0_43.wav
+f0ing,now-28,all-71,-/app/logs/test_1103/1_16k_wavs/1_24.wav
+f0ing,now-42,all-71,-/app/logs/test_1103/1_16k_wavs/1_58.wav
+f0ing,now-28,all-70,-/app/logs/test_1103/1_16k_wavs/1_26.wav
+f0ing,now-56,all-71,-/app/logs/test_1103/1_16k_wavs/2_34.wav
+f0ing,now-42,all-70,-/app/logs/test_1103/1_16k_wavs/1_59.wav
+f0ing,now-70,all-71,-/app/logs/test_1103/1_16k_wavs/2_9.wav
+f0ing,now-56,all-70,-/app/logs/test_1103/1_16k_wavs/2_35.wav
+infer/modules/train/extract_feature_print.py cuda:0 1 0 0 /app/logs/test_1103 v2 True
+exp_dir: /app/logs/test_1103
+load model(s) from assets/hubert/hubert_base.pt
+move model to cuda
+all-feature-141
+all-feature-done
