@@ -3,10 +3,10 @@ from sqlalchemy.orm import Session
 from starlette import status
 from core.db import get_db
 from api.model import model_schema, model_crud 
-#from models import Model,Voice_Temp
+from models import Model,Voice_Temp
 import httpx
 
-from infer_start import voice_extraction, preprocess_train, model_train, extraction_f0, train
+from infer_start import voice_extraction, train
 # import os
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../')))
 
@@ -29,26 +29,15 @@ def model_create(request: model_schema.ModelCreate, backgroundTasks: BackgroundT
 
     # user_id = request.user_id
     # voice_id = request.voice_id
-    model_name = request.voice_model_name
+    # model_name = request.voice_model_name
     # Voice_Temp = db.query(Voice_Temp).filter(Model.voice_Id == voice_id).first()
     # origin_voice = Voice_Temp.voice_File_Path
-    origin_voice = request.voice_model_name
-    voice_extraction(input=f"{origin_voice}/data",save_vocal=f"{origin_voice}/vocal",save_ins=origin_voice) #f로 받으면 중복 문제 있을 수 있음
-    fin = train()
-    # print("목소리 추출")
-    # #voice_extraction(input=f"{origin_voice}/data",save_vocal=f"{origin_voice}/vocal",save_ins=origin_voice)
+    # origin_voice = request.voice_model_name
     
-    # preprocess_train(trainset_dir = f"{origin_voice}/vocal",model_dir = model_name)
+    #voice_extraction(input=f"{origin_voice}/data",save_vocal=f"{origin_voice}/vocal",save_ins=origin_voice) #f로 받으면 중복 문제 있을 수 있음 #사용자마다 파일 어떻게 정리할지도 정해야함...
     
-    # extraction_f0(model_dir=model_name)
+    Temp = train()
     
-    # print("전처리 완료")
-
-    # print("모델 훈련시작")
-
-    #model_train(trainset_dir = f"{origin_voice}/vocal",model_dir = model_name)
-    
-    # print("모델 학습완료")
     # trained_model_path="/abc/mart"
 
     # # model = Model(voice_Model_Name=model_name, voice_Model_File_path=trained_model_path, user_Entity=user_id)
@@ -59,7 +48,7 @@ def model_create(request: model_schema.ModelCreate, backgroundTasks: BackgroundT
 
     # 훈련 완료 후 알림을 보내는 부분
     # async with httpx.AsyncClient() as client:
-    #     response = await client.post("https://3.36.63.85:8080", params={"status": "completed", "voice_model_id": model.voice_Model_Name})
+    #     response = await client.post("https://3.36.63.85:8080", params={"status": "completed", "voice_model_id": "model.voice_Model_Name"})
 
     #     if response.status_code != 200:
     #         print("알림 전송 실패:", response.text)

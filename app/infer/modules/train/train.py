@@ -149,7 +149,7 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
         collate_fn = TextAudioCollate()
     train_loader = DataLoader(
         train_dataset,
-        num_workers=4,
+        num_workers=1,
         shuffle=False,
         pin_memory=True,
         collate_fn=collate_fn,
@@ -201,9 +201,11 @@ def run(rank, n_gpus, hps, logger: logging.Logger):
         net_d = DDP(net_d)
 
     try:  # 如果能加载自动resume
+        print(now_dir,"$$$$$$$$$$$$$$")
         _, _, _, epoch_str = utils.load_checkpoint(
             utils.latest_checkpoint_path(hps.model_dir, "D_*.pth"), net_d, optim_d
         )  # D多半加载没事
+
         if rank == 0:
             logger.info("loaded D")
         # _, _, _, epoch_str = utils.load_checkpoint(utils.latest_checkpoint_path(hps.model_dir, "G_*.pth"), net_g, optim_g,load_opt=0)

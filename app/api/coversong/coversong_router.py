@@ -8,6 +8,10 @@ from api.user import user_schema, user_crud
 from models import Model, CoverSong
 import httpx
 
+
+from pydub import AudioSegment
+
+
 from infer_start import coversong_train, mixing
 
 router = APIRouter(
@@ -23,25 +27,26 @@ def create_cover_song(
     request: coversong_schema.CoverSongCreate,
     db: Session = Depends(get_db)):
 
-    # title = request.title
-    # origin_song = request.audio_path
-    # user_id = request.user_id
-    # model_id = request.model_id
+    title = request.title
+    origin_song = request.audio_path
+    user_id = request.user_id
+    model_id = request.model_id
 
-    # model = model = db.query(Model).filter(
-    # Model.model_id == model_id,
-    # Model.user_id == user_id
-    # ).first()
-    # model_path = model.model_path
-    # if not model:
-    #      raise HTTPException(status_code=404, detail="Model not found")
+    model = model = db.query(Model).filter(
+    Model.model_id == model_id,
+    Model.user_id == user_id
+    ).first()
+    model_path = model.model_path
+    if not model:
+         raise HTTPException(status_code=404, detail="Model not found")
     model_name = "user_2"
     origin_song = "/app/source/song/LiMYY"
     print("커버송 제작시작")
     coversong_train(sid0=f"{model_name}.pth", input_audio_path=f"{origin_song}.mp3", index_path="")
     output_path=""
 
-    #mixing()
+
+    #mixing("/app/result/song/output_audio.wav","/app/source/inst/instrument_Buzz.mp3_10.wav","/app/result/Cover/ABC.wav")
     # Save the cover song to database
     # cover_song = CoverSong(model_id=model_id, user_id=user_id, audio_path=output_path, title=title) #If you need a new title
     # db.add(cover_song)

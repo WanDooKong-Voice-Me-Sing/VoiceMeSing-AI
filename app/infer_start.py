@@ -1,13 +1,13 @@
 import os
 import sys
 from dotenv import load_dotenv
+from pydub import AudioSegment
 
 #현재 작업 디렉토리 가져옴
 now_dir = os.getcwd()
 # 현재 디렉토리 내의 모듈 쉽게 임포트
 sys.path.append(now_dir)
 #환경변수 사용가능하게
-print(now_dir)
 load_dotenv()
 
 from infer.modules.vc.modules import VC
@@ -42,7 +42,9 @@ import subprocess
 torch.cuda.set_per_process_memory_fraction(1.0, 0)  # 첫 번째 GPU의 메모리의 50%를 사용 추가한거임
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1' #추가한거임
 
-
+import warnings
+# 특정 FutureWarning을 무시
+warnings.filterwarnings("ignore", category=FutureWarning)
 
 torch.cuda.empty_cache()
 #이름이 "numba"인 로거(Logger) 객체를 가져옵니다. 이 로거는 numba 라이브러리에서 발생하는 로그 메시지를 처리
@@ -253,7 +255,7 @@ def preprocess_dataset(trainset_dir, exp_dir, sr, n_p):
     with open(log_path, "r") as log_file:
         final_log = log_file.read()
     logger.info(final_log)
-    print(final_log)
+
         
 # f0 추출 함수
 # but2.click(extract_f0,[gpus6,np7,f0method8,if_f0_3,trainset_dir4],[info2])
@@ -290,10 +292,10 @@ def extract_f0_feature(gpus, n_p, f0method, if_f0, exp_dir, version19, gpus_rmvp
                 p = subprocess.Popen(cmd, shell=True, cwd=now_dir)
                 ps.append(p)
 
-            # 모든 프로세스가 완료될 때까지 대기
-            for p in ps:
-                p.wait()  # 각 프로세스가 종료될 때까지 대기
-
+                # 모든 프로세스가 완료될 때까지 대기
+                for p in ps:
+                    p.wait()
+                    
             # 모든 작업이 끝나면 다음 단계로 진행
             done = [False]
             threading.Thread(
@@ -303,34 +305,7 @@ def extract_f0_feature(gpus, n_p, f0method, if_f0, exp_dir, version19, gpus_rmvp
 
             torch.cuda.empty_cache()  # 캐시 지우기
             print("모든 f0 추출 완료")            
-            
-            
-            # for idx, n_g in enumerate(gpus_rmvpe):
-            #     cmd = (
-            #         '"%s" infer/modules/train/extract/extract_f0_rmvpe.py %s %s %s "%s/logs/%s" %s '
-            #         % (
-            #             config.python_cmd,
-            #             leng,
-            #             idx,
-            #             n_g,
-            #             now_dir,
-            #             exp_dir,
-            #             config.is_half,
-            #         )
-            #     )
-            #     logger.info("Execute: " + cmd)
-            #     p = Popen(
-            #         cmd, shell=True, cwd=now_dir
-            #     )  # , shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=now_dir
-            #     ps.append(p)
-            # done = [False]
-            # threading.Thread(
-            #     target=if_done_multi,  #
-            #     args=(
-            #         done,
-            #         ps,
-            #     ),
-            # ).start()
+        
 
     # 서로 다른 부분(part)을 각각 별도의 프로세스로 실행
     leng = len(gpus)
@@ -355,7 +330,9 @@ def extract_f0_feature(gpus, n_p, f0method, if_f0, exp_dir, version19, gpus_rmvp
             cmd, shell=True, cwd=now_dir
         )  # , shell=True, stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=now_dir
         ps.append(p)
-
+        for p in ps:
+            p.wait()
+            
     done = [False]
     threading.Thread(
         target=if_done_multi,
@@ -364,7 +341,9 @@ def extract_f0_feature(gpus, n_p, f0method, if_f0, exp_dir, version19, gpus_rmvp
             ps,
         ),
     ).start()
-
+    print("아직 여기 못옴")
+    
+    
 #프리 트레인 모델 파일 확인 및 반환
 def get_pretrained_models(path_str, f0_str, sr2):
     if_pretrained_generator_exist = os.access(
@@ -432,7 +411,6 @@ def change_f0(if_f0_3, sr2, version19):  # f0method8,pretrained_G14,pretrained_D
     )
 
 
-# but3.click(click_train,[exp_dir1,sr2,if_f0_3,save_epoch10,total_epoch11,batch_size12,if_save_latest13,pretrained_G14,pretrained_D15,gpus16])
 def click_train(
     exp_dir1,
     sr2,
@@ -521,7 +499,6 @@ def click_train(
         f.write("\n".join(opt))
     logger.debug("Write filelist done")
     # config생성#config 불필요 (실제로는 불필요한 작업) 모델학습을 위한 파일리스트 준비, 구성파일저장, gpu, 프리트레인 모델 정보 로깅
-    #cmd = python_cmd + " train_nsf_sim_cache_sid_load_pretrain.py -e mi-test -sr 40k -f0 1 -bs 4 -g 0 -te 10 -se 5 -pg pretrained/f0G40k.pth -pd pretrained/f0D40k.pth -l 1 -c 0"
     logger.info("Use gpus: %s", str(gpus16))
     if pretrained_G14 == "":
         logger.info("No pretrained Generator")
@@ -544,7 +521,7 @@ def click_train(
             )
             f.write("\n")
     print(config) 
-    ####################################       
+   
     if gpus16:
         print("gpu사용")
         import gc
@@ -596,6 +573,8 @@ def click_train(
     #             version19,
     #         )
     #     )
+    
+    
     logger.info("Execute: " + cmd) # 명령어 실행전에 로그에 기록 어떤거 실행했는지 확인
     p = Popen(cmd, shell=True, cwd=now_dir) # 명령어를 새 프로세스에서 실행 shell
     p.wait()# 명령어 실행완료시까지 대기
@@ -603,7 +582,6 @@ def click_train(
     return "훈련완료, 콘솔에서 훈련 로그를 확인하거나 실험 폴더 아래의 train.log 파일을 확인 가능"
 
 
-# but4.click(train_index, [exp_dir1], info3)데이터 준비
 def train_index(exp_dir1, version19):
     # exp_dir = "%s/logs/%s" % (now_dir, exp_dir1)로그파일 저장 디렉터리
     exp_dir = "logs/%s" % (exp_dir1)
@@ -718,140 +696,92 @@ def train_index(exp_dir1, version19):
     # faiss.write_index(index, '%s/added_IVF%s_Flat_FastScan_%s.index'%(exp_dir,n_ivf,version19))
     # infos.append("成功构建索引，added_IVF%s_Flat_FastScan_%s.index"%(n_ivf,version19))
     print("\n".join(infos))
+    return infos
 
-# but5.click(train1key, [exp_dir1, sr2, if_f0_3, trainset_dir4, spk_id5, gpus6, np7, f0method8, save_epoch10, total_epoch11, batch_size12, if_save_latest13, pretrained_G14, pretrained_D15, gpus16, if_cache_gpu17], info3)
-def train1key(
-    exp_dir1,
-    sr2,
-    if_f0_3,
-    trainset_dir4,
-    spk_id5,
-    np7,
-    f0method8,
-    save_epoch10,
-    total_epoch11,
-    batch_size12,
-    if_save_latest13,
-    pretrained_G14,
-    pretrained_D15,
-    gpus16,
-    if_cache_gpu17,
-    if_save_every_weights18,
-    version19,
-    gpus_rmvpe,
+
+def train(
+    exp_dir1="user_9",
+    sr2="40k",
+    if_f0_3=True,
+    trainset_dir4="/home/mypj/VoiceMeSing-AI//app/source/vocal",
+    spk_id5="0",
+    np7=11,
+    f0method8="rmvpe_gpu",
+    save_epoch10="30",
+    total_epoch11="5",
+    batch_size12="3",
+    if_save_latest13="NO",
+    pretrained_G14="/home/mypj/VoiceMeSing-AI//app/assets/pretrained_v2/f0G40k.pth",
+    pretrained_D15="/home/mypj/VoiceMeSing-AI//app/assets/pretrained_v2/f0D40k.pth",
+    gpus16="0",
+    if_cache_gpu17="NO",
+    if_save_every_weights18="NO",
+    version19="v2",
+    gpus_rmvpe="%s-%s" % (0, 0),
 ):
-    infos = []
+    try:
+        infos = []
 
-    def get_info_str(strr):
-        infos.append(strr)
-        return "\n".join(infos)
+        def get_info_str(strr):
+            infos.append(strr)
+            return "\n".join(infos)
 
-    def process_steps(trainset_dir4, exp_dir1, sr2, np7, gpus16, f0method8, if_f0_3, version19, gpus_rmvpe, spk_id5, save_epoch10, total_epoch11, batch_size12, if_save_latest13, pretrained_G14, pretrained_D15, if_cache_gpu17, if_save_every_weights18):
-        # step1: 데이터 처리
-        get_info_str("step1: 데이터를 처리 중입니다")
-        result = preprocess_dataset(trainset_dir4, exp_dir1, sr2, np7)
-        print("preprocess_dataset result:", result)  # 반환 값 확인
-        if result is not None:
-            [get_info_str(_) for _ in result]
-        else:
-            print("preprocess_dataset returned None")
-        print("1번")
-        # step2: 음높이(F0) 추출 및 음성 데이터 처리
-        get_info_str("step2: 음높이(F0)와 특징을 추출하는 중입니다.")
-        results = extract_f0_feature(gpus16, np7, f0method8, if_f0_3, exp_dir1, version19, gpus_rmvpe)
-        print("extract_f0_feature result:", results)  # 반환 값 확인
-        if results is not None:
-            [get_info_str(_) for _ in results]
-        else:
-            print("extract_f0_feature returned None")
-        print("2번")
-        # step3a: 모델 훈련
-        get_info_str("step3a: 모델 훈련 중입니다.")
-        click_train(
-            exp_dir1,
-            sr2,
-            if_f0_3,
-            spk_id5,
-            save_epoch10,
-            total_epoch11,
-            batch_size12,
-            if_save_latest13,
-            pretrained_G14,
-            pretrained_D15,
-            gpus16,
-            if_cache_gpu17,
-            if_save_every_weights18,
-            version19,
-        )
-        get_info_str("훈련이 끝났습니다. 콘솔 훈련 로그 또는 실험 폴더의 train.log 파일을 확인할 수 있습니다.")
-        print("여기까지 오케이")
-        # step3b: 인덱스 훈련 단계
-        [get_info_str(_) for _ in train_index(exp_dir1, version19)]
-        get_info_str("모든 실행이 종료되었습니다.")
+        def process_steps(trainset_dir4, exp_dir1, sr2, np7, gpus16, f0method8, if_f0_3, version19, gpus_rmvpe, spk_id5, save_epoch10, total_epoch11, batch_size12, if_save_latest13, pretrained_G14, pretrained_D15, if_cache_gpu17, if_save_every_weights18):
+            # step1: 데이터 처리
+            get_info_str("step1: 데이터를 처리 중입니다")
+            result = preprocess_dataset(trainset_dir4, exp_dir1, sr2, np7)
+            print("preprocess_dataset result:", result)  # 반환 값 확인
+            if result is not None:
+                [get_info_str(_) for _ in result]
+            else:
+                print("preprocess_dataset returned None")
+            print("1번")
+            
+            
+            # step2: 음높이(F0) 추출 및 음성 데이터 처리
+            get_info_str("step2: 음높이(F0)와 특징을 추출하는 중입니다.")
+            results = extract_f0_feature(gpus16, np7, f0method8, if_f0_3, exp_dir1, version19, gpus_rmvpe)
+            print("extract_f0_feature result:", results)  # 반환 값 확인
+            if results is not None:
+                [get_info_str(_) for _ in results]
+            else:
+                print("extract_f0_feature returned None")
 
-        # 최종 결과 반환
-        return get_info_str("모든 처리가 완료되었습니다.")
+            # step3a: 모델 훈련
+            get_info_str("step3a: 모델 훈련 중입니다.")
+            click_train(
+                exp_dir1,
+                sr2,
+                if_f0_3,
+                spk_id5,
+                save_epoch10,
+                total_epoch11,
+                batch_size12,
+                if_save_latest13,
+                pretrained_G14,
+                pretrained_D15,
+                gpus16,
+                if_cache_gpu17,
+                if_save_every_weights18,
+                version19,
+            )
+            get_info_str("훈련이 끝났습니다. 콘솔 훈련 로그 또는 실험 폴더의 train.log 파일을 확인할 수 있습니다.")
+            print("여기까지 오케이")
+            # step3b: 인덱스 훈련 단계
+            [get_info_str(_) for _ in train_index(exp_dir1, version19)]
+            get_info_str("모든 실행이 종료되었습니다.")
 
-        # 함수 호출 예시 (필요한 인자를 넣어서 호출)
-    result = process_steps(trainset_dir4, exp_dir1, sr2, np7, gpus16, f0method8, if_f0_3, version19, gpus_rmvpe, spk_id5, save_epoch10, total_epoch11, batch_size12, if_save_latest13, pretrained_G14, pretrained_D15, if_cache_gpu17, if_save_every_weights18)
-    print(result)
-    # infos = []
-    # print("1번")
-    # def get_info_str(strr):
-    #     infos.append(strr)
-    #     return "\n".join(infos)
-    # print("2번")
-    # # step1:데이터 처리
-    # yield get_info_str("step1:데이터를 처리중입니다")
-    # [get_info_str(_) for _ in preprocess_dataset(trainset_dir4, exp_dir1, sr2, np7)]
-    # print("3번")
-    # # step2a:음높이 추출 , 음성데이터 처리, 음높이와 다른 특징 추출
-    # yield get_info_str("step2:음높이(F0)와 특징을 추출하는 중입니다.")
-    # [
-    #     get_info_str(_)
-    #     for _ in extract_f0_feature(
-    #         gpus16, np7, f0method8, if_f0_3, exp_dir1, version19, gpus_rmvpe
-    #     )
-    # ]
+            # 최종 결과 반환
+            return get_info_str("모든 처리가 완료되었습니다.")
 
-    # # step3a:모델훈련
-    # yield get_info_str("step3a:모델훈련")
-    # click_train(
-    #     exp_dir1,
-    #     sr2,
-    #     if_f0_3,
-    #     spk_id5,
-    #     save_epoch10,
-    #     total_epoch11,
-    #     batch_size12,
-    #     if_save_latest13,
-    #     pretrained_G14,
-    #     pretrained_D15,
-    #     gpus16,
-    #     if_cache_gpu17,
-    #     if_save_every_weights18,
-    #     version19,
-    # )
-    # yield get_info_str(
-    #     "훈련이 끝났습니다. 콘솔 훈련 로그 또는 실험 폴더의 train.log 파일을 확인할 수 있습니다"
-    # )
+            # 함수 호출 예시 (필요한 인자를 넣어서 호출)
+        result = process_steps(trainset_dir4, exp_dir1, sr2, np7, gpus16, f0method8, if_f0_3, version19, gpus_rmvpe, spk_id5, save_epoch10, total_epoch11, batch_size12, if_save_latest13, pretrained_G14, pretrained_D15, if_cache_gpu17, if_save_every_weights18)
+        print(result)
+        
+    except Exception as e:
+        print(f"train 호출 중 예외 발생: {e}")
 
 
-    # # step3b:모델훈련, 인덱스 훈련단계
-    # [get_info_str(_) for _ in train_index(exp_dir1, version19)]
-    # yield get_info_str("모든 실행 종료")
-
-
-
-
-
-
-
-
-
-
-
-#                    ckpt_path2.change(change_info_,[ckpt_path2],[sr__,if_f0__])
 #체크포인트 파일 경로를 입력받고, 로그 파일을 읽어서 해당하는 정보 추출
 def change_info_(ckpt_path):
     if not os.path.exists(ckpt_path.replace(os.path.basename(ckpt_path), "train.log")):
@@ -878,84 +808,6 @@ def change_f0_method(f0method8):
     return {"visible": visible, "__type__": "update"}
 
 
-
-
-#훈련 (사용자의 목소리)
-#step1  기본 설정
-# try:
-#     info1 = preprocess_dataset(
-#         trainset_dir="/app/source/vocal",  # 목소리 데이터 주소
-#         exp_dir="user_2",  # 목소리 모델의 이름 설정 가능
-#         sr="40k",  # 샘플링 레이트 40 or 48 (48000Hz 이상이면)
-#         n_p=11,  # CPU 코어 수
-#     )
-
-#     print("preprocess_dataset 실행 성공")
-# except Exception as e:
-#     print(f"preprocess_dataset 호출 중 예외 발생: {e}")
-    
-
-# # step2a - 피처 추출
-# try:
-#     extract_f0_feature(
-#         gpus="0",  # GPU 선택 (예: 0)
-#         n_p=11,  # 학습에 사용할 CPU 코어 수
-#         f0method="rmvpe_gpu",  # 추출 방법: "pm", "harvest", "dio", "rmvpe", "rmvpe_gpu"
-#         if_f0=True,  # 피치 포함 여부 (FALSE면 국어책 읽기)
-#         exp_dir="myTest",
-#         version19="v2",  # v1 또는 v2 (기본값)
-#         gpus_rmvpe="%s-%s" % (gpus, gpus), # GPU 병렬 처리 방법, 기본값
-#     )
-#     print("extract_f0_feature 실행 성공")
-# except Exception as e:
-#     print(f"extract_f0_feature 호출 중 예외 발생: {e}")
-
-
-# # step3 - 모델 훈련
-# try:
-#     info3 = click_train(
-#         exp_dir1="user_2",
-#         sr2="40k",
-#         if_f0_3=True,  # 피치 포함 여부 (FALSE면 국어책 읽기)
-#         spk_id5='0',  # 보컬 ID, 기본값 사용
-#         save_epoch10='30',  # 학습 중간 저장 빈도
-#         total_epoch11='15',  # 전체 epoch
-#         batch_size12='3',  # 배치 사이즈
-#         if_save_latest13="NO",  # 마지막 ckpt 파일만 저장할지 여부 (디스크 용량 문제)
-#         pretrained_G14="/app/assets/pretrained_v2/f0G48k.pth",  # Pretrain 제너레이터
-#         pretrained_D15="/app/assets/pretrained_v2/f0D48k.pth",  # Pretrain discriminator
-#         gpus16="0",
-#         if_cache_gpu17="NO",  # GPU에 트레이닝 셋 캐싱 (속도 증가, 메모리 많이 씀)
-#         if_save_every_weights18="NO",  # 세이브 지점마다 모델 생성 여부
-#         version19="v2",  # v1 또는 v2 (기본값)
-#     )
-#     print("click_train 실행 성공")
-# except Exception as e:
-#     print(f"click_train 호출 중 예외 발생: {e}")
-
-
-#step3 - 피처 인덱스 훈련
-# try:
-#     info3 = train_index(
-#         "user_2",
-#         "v2",
-#     )
-#     print("train_index 실행 성공")
-# except Exception as e:
-#     print(f"train_index 호출 중 예외 발생: {e}")
-
-# print("함수 호출 전")
-# try:
-#     vc_output4 = uvr(model_name=uvr5_names[2], inp_root="/app/source/data", save_root_vocal="/app/source/vocal", paths= "", save_root_ins="/app/source", agg=10, format0="wav")
-#     # 결과 출력
-#     for output in vc_output4:
-#         print(output)
-# except Exception as e:
-#     print(f"함수 호출 중 예외 발생: {e}")
-
-# print(f"Selected model: {uvr5_names[2]}")
-# print(ngpu)
-
 # 목소리 파일 추출하기
 def voice_extraction(input, save_vocal, save_ins):
     print("함수 호출 전")
@@ -968,198 +820,7 @@ def voice_extraction(input, save_vocal, save_ins):
         print(f"함수 호출 중 예외 발생: {e}")
 
     print(f"Selected model: {uvr5_names[2]}")
-    print(ngpu)
 
-
-# 훈련 (사용자의 목소리)
-#step1  기본 설정
-def preprocess_train(trainset_dir,model_dir):
-    try:
-        info1 = preprocess_dataset(
-            trainset_dir=trainset_dir,  # 목소리 데이터 주소
-            exp_dir=model_dir,  # 목소리 모델의 이름 설정 가능
-            sr="40k",  # 샘플링 레이트 40 or 48 (48000Hz 이상이면)
-            n_p=11,  # CPU 코어 수
-        )
-        torch.cuda.empty_cache()
-        print("preprocess_dataset 실행 성공")
-    except Exception as e:
-        print(f"preprocess_dataset 호출 중 예외 발생: {e}")
-        
-
-
-# step2a - 피처 추출
-def extraction_f0(model_dir):
-    try:
-        info2 = extract_f0_feature(
-            gpus="0",  # GPU 선택 (예: 0)
-            n_p=11,  # 학습에 사용할 CPU 코어 수
-            f0method="rmvpe_gpu",  # 추출 방법: "pm", "harvest", "dio", "rmvpe", "rmvpe_gpu"
-            if_f0=True,  # 피치 포함 여부 (FALSE면 국어책 읽기)
-            exp_dir=model_dir,
-            version19="v2",  # v1 또는 v2 (기본값)
-            gpus_rmvpe="%s-%s" % (gpus, gpus),  # GPU 병렬 처리 방법, 기본값
-        )
-        torch.cuda.empty_cache()
-        print("extract_f0_feature 실행 성공")
-    except Exception as e:
-        print(f"extract_f0_feature 호출 중 예외 발생: {e}")
-        
-
-#from memory_profiler import profile
-#@profile
-def model_train(trainset_dir,model_dir):
-#step3 - 모델 훈련
-    try:
-        import psutil
-
-        # 사용 중인 CPU 코어 수
-        cpu_count = psutil.cpu_count(logical=True)
-        print(f"총 CPU 코어 수: {cpu_count}")
-
-        # 각 코어의 사용률
-        cpu_usage = psutil.cpu_percent(percpu=True)
-        print("각 코어 사용률:", cpu_usage)
-        info3 = click_train(
-            exp_dir1=model_dir,
-            sr2="40k",
-            if_f0_3=True,  # 피치 포함 여부 (FALSE면 국어책 읽기)
-            spk_id5='0',  # 보컬 ID, 기본값 사용
-            save_epoch10='30',  # 학습 중간 저장 빈도
-            total_epoch11='15',  # 전체 epoch
-            batch_size12='20',  # 배치 사이즈
-            if_save_latest13="NO",  # 마지막 ckpt 파일만 저장할지 여부 (디스크 용량 문제)
-            pretrained_G14="/app/assets/pretrained_v2/f0G40k.pth",  # Pretrain 제너레이터
-            pretrained_D15="/app/assets/pretrained_v2/f0D40k.pth",  # Pretrain discriminator
-            gpus16="0",
-            if_cache_gpu17="NO",  # GPU에 트레이닝 셋 캐싱 (속도 증가, 메모리 많이 씀)
-            if_save_every_weights18="NO",  # 세이브 지점마다 모델 생성 여부
-            version19="v2",  # v1 또는 v2 (기본값)
-        )
-        torch.cuda.empty_cache()
-        print("click_train 실행 성공")
-    except Exception as e:
-        print(f"click_train 호출 중 예외 발생: {e}")
-
-
-# #step3 - 피처 인덱스 훈련
-#     try:
-#         info3 = train_index(
-#             model_dir,
-#             "v2",
-#         )
-#         print("train_index 실행 성공")
-#     except Exception as e:
-#         print(f"train_index 호출 중 예외 발생: {e}")
-
-
-
-
-"""
-# step3- 한번에 다하기
-train1key,
-[
-    exp_dir1,
-    sr2 = "40k",
-    if_f0_3 = True, # 피치포함 여부 (FALSE면 국어책 읽기)
-    trainset_dir4 = "", #목소리 데이터 주소 \\ 
-    spk_id5 = 0,  # 보컬 id 뭔지 잘모름 기본값
-    np7 = 11, #학습에 사용할 cpu 코어 수 
-    f0method8 = "rmvpe_gpu", #추출방법 "pm", "harvest", "dio", "rmvpe", "rmvpe_gpu"
-    save_epoch10 = 30, #학습 중간 저장빈도
-    total_epoch11 = 150, #전체 epoch
-    batch_size12 = 12, #배치 사이즈
-    if_save_latest13 = "NO", # 마지막 ckpt파일만 저장할건지 (디스크용량문제)
-    pretrained_G14 = "/app/assets/pretrained/f0G40k.pth", #pretrain  제네레이터
-    pretrained_D15 = "/app/assets/pretrained/f0D40k.pth",# pretrain discriminator
-    gpus16 = gpus,
-    if_cache_gpu17 = "YES",#GPU에 트레이닝 셋 캐싱 (속도 증가 - 메모리 많이 씀)
-    if_save_every_weights18 = "NO", #세이브 지점마다 모델생성
-    version19= "v2", #v1or v2(기본),
-    gpus_rmvpe = "%s-%s" % (gpus, gpus), # GPU 병렬처리 방법 일단 기본값으로 
-],
-info3
-
-
-
-#배치 컨버젼, 여러 오디오 파일 한번에 
-but1.click(
-                        vc.vc_multi,
-                        [
-                            spk_item,
-                            dir_input,
-                            opt_input,
-                            inputs,
-                            vc_transform1,
-                            f0method1,
-                            file_index3,
-                            file_index4,
-                            # file_big_npy2,
-                            index_rate2,
-                            filter_radius1,
-                            resample_sr1,
-                            rms_mix_rate1,
-                            protect1,
-                            format1,
-                        ],
-                        [vc_output3],
-                        api_name="infer_convert_batch",
-                    )
-
-
-"""
-gpus="0"
-try:
-    train1key(
-        exp_dir1="test_1103",
-        sr2="40k",
-        if_f0_3=True,
-        trainset_dir4="/app/source/vocal",
-        spk_id5="0",
-        np7=11,
-        f0method8="rmvpe_gpu",
-        save_epoch10="30",
-        total_epoch11="5",
-        batch_size12="3",
-        if_save_latest13="NO",
-        pretrained_G14="/app/assets/pretrained_v2/f0G40k.pth",
-        pretrained_D15="/app/assets/pretrained_v2/f0D40k.pth",
-        gpus16="0",
-        if_cache_gpu17="NO",
-        if_save_every_weights18="NO",
-        version19="v2",
-        gpus_rmvpe="%s-%s" % (gpus, gpus),
-    )
-except Exception as e:
-    print(f"train 호출 중 예외 발생: {e}")
-def train():
-    try:
-        train1key(
-            exp_dir1="user_2",
-            sr2="40k",
-            if_f0_3=True,
-            trainset_dir4="/app/source/vocal",
-            spk_id5="0",
-            np7=11,
-            f0method8="rmvpe_gpu",
-            save_epoch10="30",
-            total_epoch11="5",
-            batch_size12="3",
-            if_save_latest13="NO",
-            pretrained_G14="/app/assets/pretrained_v2/f0G40k.pth",
-            pretrained_D15="/app/assets/pretrained_v2/f0D40k.pth",
-            gpus16="0",
-            if_cache_gpu17="NO",
-            if_save_every_weights18="NO",
-            version19="v2",
-            gpus_rmvpe="%s-%s" % (gpus, gpus),
-        )
-    except Exception as e:
-        print(f"train 호출 중 예외 발생: {e}")
-
-
-
-from pydub import AudioSegment
 def mixing(vocal_path, inst_path, output_path):
     try:
         vocal = AudioSegment.from_file(vocal_path)
@@ -1178,8 +839,8 @@ def mixing(vocal_path, inst_path, output_path):
         print(f"mixing 호출 중 예외 발생: {e}")
     
     
-    
-    #############################################
+
+
 def coversong_train(sid0, input_audio_path, index_path):
 # 모델 infer(변환)
     file_to_index = {sid0 : 0}
@@ -1231,41 +892,3 @@ def coversong_train(sid0, input_audio_path, index_path):
         print(vc_output2)
     except Exception as e:
         print(f"Error occurred: {e}")
-##############################################################
-
-# file_to_index = {"user_2.pth" : 0}
-# print(torch.__version__)
-# try:
-#     sid0_value = "user_2.pth"  # sid0에 해당하는 값
-#     protect0_value = 0.33  # protect0에 해당하는 값
-#     protect1_value = 0.33  # protect1에 해당하는 값
-#     results = vc.get_vc(sid0_value, protect0_value, protect1_value)
-#     print("불러오기 성공")
-#     if results:
-#         spk_item, protect0, protect1, file_index2 = results
-#         #spk_item, protect0, protect1, file_index2, file_index4 = results
-#         print("Speaker Item:", spk_item)
-#         print("Protect0:", protect0)
-#         print("Protect1:", protect1)
-#         print("File Index2:", file_index2)
-#         #print("File Index4:", file_index4)
-            
-#     vc_output1, vc_output2 = vc.vc_single(
-#         sid="user_2.pth",  # 화자 선택 (기본값으로 사용)
-#         input_audio_path="/app/source/song/LiMYY.mp3",  # 변환할 노래/
-#         f0_up_key=int(0),  # 옥타브 조정: 정수로 변환 남-노래일 때 
-#         f0_file="",  # optional F0 커브파일
-#         f0_method="rmvpe",  # "pm", "harvest", "crepe", "rmvpe" 중 rmvpe사용
-#         file_index="",  # 목소리 모델의 인덱스 파일
-#         file_index2="",  # 목소리 모델의 인덱스 파일 지정
-#         index_rate=float(0.75),  # 인덱스 파일 비율을 실수로 변환
-#         filter_radius=int(3),  # 필터 반지름을 정수로 변환
-#         resample_sr=int(0),  # 리샘플링 SR을 정수로 변환
-#         rms_mix_rate=float(0.25),  # RMS 믹스 비율을 실수로 변환
-#         protect=float(0.33),  # 보호 비율을 실수로 변환
-#     )
-#     print ("성공")
-#     print(vc_output1)
-#     print(vc_output2)
-# except Exception as e:
-#     print(f"Error occurred: {e}")        
