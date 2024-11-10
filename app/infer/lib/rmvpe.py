@@ -21,6 +21,11 @@ import torch.nn.functional as F
 from librosa.util import normalize, pad_center, tiny
 from scipy.signal import get_window
 
+import warnings
+# 특정 FutureWarning을 무시
+warnings.filterwarnings("ignore", category=FutureWarning)
+
+
 import logging
 
 logger = logging.getLogger(__name__)

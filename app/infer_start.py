@@ -238,18 +238,35 @@ def preprocess_dataset(trainset_dir, exp_dir, sr, n_p):
     
     # 명령어 실행 및 로그 기록
     with open(log_path, "a") as log_file:
-        process = subprocess.Popen(cmd, shell=True, stdout=log_file, stderr=log_file)
-        done = [False]
-        threading.Thread(target=if_done, args=(done, process)).start()
+        process = subprocess.run(cmd, shell=True, stdout=log_file, stderr=log_file)
+    # with open(log_path, "a") as log_file:
+    #     process = subprocess.Popen(cmd, shell=True, stdout=log_file, stderr=log_file)
+        # done = [False]
+        # threading.Thread(target=if_done, args=(done, process)).start()
+    with open(log_path, "r") as log_file:
+        log_file.seek(0, 2)  # 파일 끝으로 이동
+        
+        while True:
+            line = log_file.readline()
+            
+            if line:
+                print(line, end="")  # 새로 추가된 라인 출력
+            else:
+                sleep(1)  # 새로운 내용이 없으면 1초 대기
+
+            # 프로세스가 종료된 후 로그 출력이 끝났는지 확인
+            if log_file.tell() == log_file.seek(0, 2):
+                break
+
     
     # 프로세스 완료 여부 확인 및 로그 업데이트
-    while True:
-        with open(log_path, "r") as log_file:
-            print(log_file.read())  # 터미널에 출력하거나 다른 방식으로 처리 가능
+    # while True:
+    #     with open(log_path, "r") as log_file:
+    #         print(log_file.read())  # 터미널에 출력하거나 다른 방식으로 처리 가능
             
-        sleep(1)
-        if done[0]:
-            break
+    #     sleep(1)
+    #     if done[0]:
+    #         break
 
     # 최종 로그 출력
     with open(log_path, "r") as log_file:
@@ -258,7 +275,6 @@ def preprocess_dataset(trainset_dir, exp_dir, sr, n_p):
 
         
 # f0 추출 함수
-# but2.click(extract_f0,[gpus6,np7,f0method8,if_f0_3,trainset_dir4],[info2])
 def extract_f0_feature(gpus, n_p, f0method, if_f0, exp_dir, version19, gpus_rmvpe):
     gpus = gpus.split("-")
     os.makedirs("%s/logs/%s" % (now_dir, exp_dir), exist_ok=True)
@@ -292,9 +308,9 @@ def extract_f0_feature(gpus, n_p, f0method, if_f0, exp_dir, version19, gpus_rmvp
                 p = subprocess.Popen(cmd, shell=True, cwd=now_dir)
                 ps.append(p)
 
-                # 모든 프로세스가 완료될 때까지 대기
-                for p in ps:
-                    p.wait()
+            # 모든 프로세스가 완료될 때까지 대기
+            for p in ps:
+                p.wait()
                     
             # 모든 작업이 끝나면 다음 단계로 진행
             done = [False]
@@ -341,7 +357,6 @@ def extract_f0_feature(gpus, n_p, f0method, if_f0, exp_dir, version19, gpus_rmvp
             ps,
         ),
     ).start()
-    print("아직 여기 못옴")
     
     
 #프리 트레인 모델 파일 확인 및 반환
@@ -520,7 +535,6 @@ def click_train(
                 sort_keys=True,
             )
             f.write("\n")
-    print(config) 
    
     if gpus16:
         print("gpu사용")
@@ -576,7 +590,9 @@ def click_train(
     
     
     logger.info("Execute: " + cmd) # 명령어 실행전에 로그에 기록 어떤거 실행했는지 확인
-    p = Popen(cmd, shell=True, cwd=now_dir) # 명령어를 새 프로세스에서 실행 shell
+    p = subprocess.run(cmd, shell=True, cwd=now_dir)
+    ####################################
+    # p = Popen(cmd, shell=True, cwd=now_dir) # 명령어를 새 프로세스에서 실행 shell
     p.wait()# 명령어 실행완료시까지 대기
     print("모델 훈련성공")
     return "훈련완료, 콘솔에서 훈련 로그를 확인하거나 실험 폴더 아래의 train.log 파일을 확인 가능"
@@ -700,19 +716,19 @@ def train_index(exp_dir1, version19):
 
 
 def train(
-    exp_dir1="user_9",
+    exp_dir1="user_10",
     sr2="40k",
     if_f0_3=True,
-    trainset_dir4="/home/mypj/VoiceMeSing-AI//app/source/vocal",
+    trainset_dir4="/home/mypj/VoiceMeSing-AI/app/source/vocal",
     spk_id5="0",
     np7=11,
     f0method8="rmvpe_gpu",
     save_epoch10="30",
-    total_epoch11="5",
-    batch_size12="3",
+    total_epoch11="100",
+    batch_size12="4",
     if_save_latest13="NO",
-    pretrained_G14="/home/mypj/VoiceMeSing-AI//app/assets/pretrained_v2/f0G40k.pth",
-    pretrained_D15="/home/mypj/VoiceMeSing-AI//app/assets/pretrained_v2/f0D40k.pth",
+    pretrained_G14="/home/mypj/VoiceMeSing-AI/app/assets/pretrained_v2/f0G40k.pth",
+    pretrained_D15="/home/mypj/VoiceMeSing-AI/app/assets/pretrained_v2/f0D40k.pth",
     gpus16="0",
     if_cache_gpu17="NO",
     if_save_every_weights18="NO",
@@ -735,7 +751,6 @@ def train(
                 [get_info_str(_) for _ in result]
             else:
                 print("preprocess_dataset returned None")
-            print("1번")
             
             
             # step2: 음높이(F0) 추출 및 음성 데이터 처리
@@ -766,7 +781,6 @@ def train(
                 version19,
             )
             get_info_str("훈련이 끝났습니다. 콘솔 훈련 로그 또는 실험 폴더의 train.log 파일을 확인할 수 있습니다.")
-            print("여기까지 오케이")
             # step3b: 인덱스 훈련 단계
             [get_info_str(_) for _ in train_index(exp_dir1, version19)]
             get_info_str("모든 실행이 종료되었습니다.")

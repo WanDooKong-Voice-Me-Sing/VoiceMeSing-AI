@@ -27,7 +27,7 @@ f = open("%s/preprocess.log" % exp_dir, "a+")
 
 
 def println(strr):
-    print(strr)
+    #print(strr)
     f.write("%s\n" % strr)
     f.flush()
 
@@ -99,7 +99,7 @@ class PreProcess:
                         tmp_audio = audio[start:]
                         idx1 += 1
                         break
-                self.norm_write(tmp_audio, idx0, idx1)
+                self.norm_write(tmp_audio, idx0, idx1)   
             println("%s\t-> Success" % path)
         except:
             println("%s\t-> %s" % (path, traceback.format_exc()))
