@@ -2,34 +2,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey, BigInteger, LargeBin
 from sqlalchemy.orm import relationship
 
 from api.core.db import Base
-# class User(Base):
-#     __tablename__ = "user"
 
-#     id = Column(Integer, primary_key=True)
-#     username = Column(String, unique=True, nullable=False)
-#     password = Column(String, nullable=False)
-#     email = Column(String, unique=True, nullable=False)
-
-# class Model(Base):
-#     __tablename__ = "question"
-
-#     model_id = Column(Integer, primary_key=True)
-#     model_path = Column(String,nullable=False )
-#     user_id = Column(Integer, ForeignKey("user.id"), nullable=True)
-#     user = relationship("User", backref="model")
-
-
-
-# class CoverSong(Base):
-#     __tablename__ = "coversong"
-
-#     coversong_id = Column(Integer, primary_key=True)
-#     audio_path = Column(String,nullable=False)
-#     title = Column(String,nullable=False)
-#     model_id = Column(Integer, ForeignKey("model.model_id"), nullable=True)
-#     model = relationship("Model", backref="coversong")
-#     user_id = Column(Integer, ForeignKey("user.id"), nullable=True)
-#     user = relationship("User", backref="coversong_user")
 
 class User(Base):
     __tablename__ = "user"

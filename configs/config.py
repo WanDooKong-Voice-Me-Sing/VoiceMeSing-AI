@@ -105,6 +105,11 @@ class Config:
 
     @staticmethod
     def arg_parse() -> tuple:
+
+        if "celery" in sys.argv[0]:
+            print("Celery 워커 실행 중 - argparse 무시")
+            return None, 7865, False, False, False, False
+
         exe = sys.executable or "python"
         parser = argparse.ArgumentParser()
         parser.add_argument("--port", type=int, default=7865, help="Listen port")
