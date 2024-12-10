@@ -42,7 +42,7 @@ class Song_Temp(Base):
     song_id = Column(BigInteger,  primary_key=True)
     voice_model_id  = Column(String(255))
     result_song_name = Column(String(255))
-    cover_song_file = Column(String(255))
+    cover_song_file = Column(LargeBinary)
     user_id = Column(String(255), unique=True, nullable=False)
 
 

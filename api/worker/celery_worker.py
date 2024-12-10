@@ -1,7 +1,7 @@
 
 from celery import current_task
 from celery.utils.log import get_task_logger
-from .celery_app import celery_app
+# from .celery_app import celery_app
 
 from api.core.db import get_db
 from sqlalchemy.orm import Session
@@ -9,6 +9,14 @@ from api.core.db import SessionLocal
 
 from models import Model,Voice_Temp, CoverSong, Song_Temp
 from infer_start import voice_extraction, train, save_origin_music, save_cover_music, coversong_train, mixing
+
+from celery import Celery
+
+celery_app = Celery(
+    "tasks",
+    broker="redis://localhost:6379/0",
+    backend="redis://localhost:6379/0"
+)
 
 logger = get_task_logger(__name__)
 
@@ -65,6 +73,7 @@ def coversong_creation(song_id: int):
         # 1. Song_Temp에서 song_id로 데이터 조회
         song_id = int(song_id)
         coversong = db.query(Song_Temp).filter(Song_Temp.song_id == song_id).first()
+
         if not coversong:
             return {"status": "error", "message": f"Song ID {song_id} not found."}
 
@@ -74,7 +83,18 @@ def coversong_creation(song_id: int):
         user_id = coversong.user_id
 
         # 2. 원본 커버 음악 저장
-        origin_song = save_cover_music(user_id, origin_cover)
+        path = save_cover_music(user_id, origin_cover, song_name)
+
+        # 3. 음성 추출 작업
+        try:
+            voice_extraction(
+                input=f"{path}/origin_c",
+                save_vocal=f"{path}/vocal_c",
+                save_ins=f"{path}/inst_c"
+            )
+        except Exception as e:
+            return {"status": "error", "message": f"Voice extraction failed: {str(e)}"}
+        
 
         # 3. Model 테이블에서 모델 조회
         model = db.query(Model).filter(
@@ -89,28 +109,30 @@ def coversong_creation(song_id: int):
         # 4. 커버송 생성
         try:
             coversong_train(
-                sid0=f"{model_name}.pth",
+                sid0=f"{model_name}",
                 user_id=user_id,
                 model_id=model_id,
-                input_audio_path=f"{origin_song}/{user_id}_{song_name}.mp3",
-                index_path=""
+                input_audio_path=f"{path}/vocal_c/vocal_{user_id}_{song_name}.mp3_10.wav",
+                index=f"{model_name}"
             )
         except Exception as e:
             return {"status": "error", "message": f"Coversong training failed: {str(e)}"}
 
         # 5. 믹싱 작업
         try:
-            result_path = mixing(
+            result_buffer = mixing(
                 f"result/{user_id}/{model_id}_output_audio.wav",
-                f"source/{user_id}/inst/instrument_{user_id}_{model_name}.mp3_10.wav",
-                f"result/{user_id}/Cover_{model_name}.wav"
+                f"{path}/inst_c/instrument_{user_id}_{song_name}.mp3_10.wav",
+                f"result/{user_id}/Cover_{model_name}.mp3"
             )
         except Exception as e:
             return {"status": "error", "message": f"Mixing failed: {str(e)}"}
-
+        
+        print(f"저장할 데이터 크기: {len(result_buffer.getvalue())}")
+        result_buffer.seek(0)
         # 6. 데이터베이스에 커버송 저장
         cover_song = CoverSong(
-            cover_song_file=result_path,
+            cover_song_file=result_buffer.getvalue(),
             result_song_name=song_name,
             is_public=True,
             user_id=user_id
@@ -118,6 +140,9 @@ def coversong_creation(song_id: int):
         db.add(cover_song)
         db.commit()
         db.refresh(cover_song)
+
+        saved_file = db.query(CoverSong).filter(CoverSong.user_id == user_id).first()
+        print(f"저장된 데이터 크기: {len(saved_file.cover_song_file)}")
 
         return {"status": "success", "message": f"Cover song task completed for song_id {song_id}"}
 

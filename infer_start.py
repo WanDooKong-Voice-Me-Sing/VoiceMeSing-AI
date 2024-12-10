@@ -799,22 +799,37 @@ def save_origin_music(user_id, origin_voice, model_name):
         folder_path = os.path.join(base_path, folder)
         os.makedirs(folder_path, exist_ok=True)
 
-    print("폴데생성완료")
+    print("폴더생성완료")
     
     with open(f"source/{user_id}/origin/{user_id}_{model_name}.mp3", "wb") as f:
         f.write(origin_voice)
     return base_path
 
+def save_cover_music(user_id, origin_cover, coversong_name):
 
-def save_cover_music(user_id, origin_cover):
+    user_path = f"source/{user_id}/{coversong_name}"
+    if 'app' in now_dir: base_path = os.path.join(now_dir, user_path)
+    folders = ['origin_c', 'voice_c', 'inst_c']
 
-    base_path = f"source/{user_id}/cover_origin"
-    os.makedirs(base_path, exist_ok=True)
-
+    for folder in folders:
+        folder_path = os.path.join(base_path, folder)
+        os.makedirs(folder_path, exist_ok=True)
+   
+    print("폴더생성완료")
     
-    with open(f"source/{user_id}/cover_origin/{user_id}.mp3", "wb") as f: # 구별불가.....
+    with open(f"source/{user_id}/{coversong_name}/origin_c/{user_id}_{coversong_name}.mp3", "wb") as f:
         f.write(origin_cover)
     return base_path
+
+# def save_cover_music(user_id, origin_cover):
+
+#     base_path = f"source/{user_id}/cover_origin"
+#     os.makedirs(base_path, exist_ok=True)
+
+    
+#     with open(f"source/{user_id}/cover_origin/{user_id}.mp3", "wb") as f: # 구별불가.....
+#         f.write(origin_cover)
+#     return base_path
 
 
 
@@ -852,18 +867,22 @@ def mixing(vocal_path, inst_path, output_path):
         
         combined = vocal.overlay(instrumental)
 
+        combined.export(output_path, format="mp3")
+
+        # 메모리 버퍼 반환
         output_buffer = io.BytesIO()
-        combined.export(output_path, format="wav")
+        combined.export(output_buffer, format="mp3")
         output_buffer.seek(0)
-        return output_buffer
+        return output_buffer  # 바이너리 데이터 반환
     except Exception as e:
         print(f"mixing 호출 중 예외 발생: {e}")
         return None
     
 
 
-def coversong_train(sid0, user_id, model_id, input_audio_path, index_path):
+def coversong_train(sid0, user_id, model_id, input_audio_path,index):
 # 모델 infer(변환)
+    selected_path = next((path for path in index_paths if index in path), None)
     file_to_index = {sid0 : 0}
     if 'app' in now_dir: input_audio_path = os.path.join(now_dir, input_audio_path)
     try:
@@ -886,8 +905,8 @@ def coversong_train(sid0, user_id, model_id, input_audio_path, index_path):
             f0_up_key=int(0),  # 옥타브 조정: 정수로 변환 남-노래일 때 
             f0_file="",  # optional F0 커브파일
             f0_method="rmvpe",  # "pm", "harvest", "crepe", "rmvpe" 중 rmvpe사용
-            file_index=index_path,  # 목소리 모델의 인덱스 파일
-            file_index2="",  # 목소리 모델의 인덱스 파일 지정
+            file_index="",  # 목소리 모델의 인덱스 파일
+            file_index2=selected_path,  # 목소리 모델의 인덱스 파일 지정
             index_rate=float(0.75),  # 인덱스 파일 비율을 실수로 변환
             filter_radius=int(3),  # 필터 반지름을 정수로 변환
             resample_sr=int(0),  # 리샘플링 SR을 정수로 변환
@@ -898,4 +917,3 @@ def coversong_train(sid0, user_id, model_id, input_audio_path, index_path):
         )
     except Exception as e:
         print(f"Error occurred: {e}")
-        

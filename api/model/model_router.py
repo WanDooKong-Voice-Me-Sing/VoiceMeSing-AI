@@ -15,7 +15,3 @@ async def model_create(request: model_schema.ModelCreate):
         return {"status": "error", "message": "voiceId is required."}
     task = model_creation.apply_async(args=[request.voiceId])   
     return {"status": "success", "message": f"Task queued for voice ID: {request.voiceId}"}
-
-    
-
-

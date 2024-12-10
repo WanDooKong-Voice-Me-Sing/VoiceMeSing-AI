@@ -577,7 +577,7 @@ def train_and_evaluate(
                     scalars=scalar_dict,
                 )
         global_step += 1
-        print(global_step,"몇번")
+        print(global_step,"번")
     # /Run steps
 
     if epoch % hps.save_every_epoch == 0 and rank == 0:
