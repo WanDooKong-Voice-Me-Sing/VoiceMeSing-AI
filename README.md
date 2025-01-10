@@ -18,6 +18,12 @@
 - 저장소: 로컬 우분투 서버
 - 데이터 베이서: MySQL
 
+## AI서버 워크 플로우
+### 1. 클라이언트의 🎤 목소리 모델 제작요청 
+### 2. AI서버의 모델 학습 및 반환
+### 3. 모델 생성 후, 커버원하는 원본곡과 원하는 목소리 모델을 선택하여 커버곡 생성요청
+### 4. 서버의 커버곡 변환 및 반환
+
 ## 환경 설정
 
 다음 명령은 Python 버전이 3.8 이상인 환경에서 실행해야 합니다.
@@ -133,7 +139,7 @@ brew install ffmpeg
 
 - [rmvpe.pt 다운로드](https://huggingface.co/lj1995/VoiceConversionWebUI/blob/main/rmvpe.pt)
 
-# 서버구성
+## 서버구성
 1. Ubuntu-24.04.1-ubuntu-24.04.1-live-server-amd64
 
 2. CUDA Toolkit (11.6.2) 및 cuDNN 8
@@ -146,3 +152,12 @@ brew install ffmpeg
 ```bash
 pip install -r requirements.txt
 ```
+
+## 서버실행
+1. Redis 서버 실행 (로컬 또는 Docker).
+2. Celery 워커 실행 (celery -A celery_worker worker --loglevel=info).
+3. FastAPI 서버 실행 (python main.py).
+
+### Acknowledgments
+- 이 프로젝트는 [RVC 모델](https://github.com/RVC-Project) 프로젝트를 참고하여 구현되었습니다.
+- 해당 프로젝트와 커뮤니티에 감사드립니다.
